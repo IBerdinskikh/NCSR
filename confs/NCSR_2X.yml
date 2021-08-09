@@ -1,0 +1,88 @@
+#### general settings
+name: 02_NCSR_DTP_2X
+use_tb_logger: true
+model: NCSR
+distortion: sr
+scale: 2
+gpu_ids: [ 0 ]
+std: 0.05   #!!float 1e-20
+mode: 'softflow'
+LRnoise: false
+prob: 1.0
+lr: !!float 5e-6
+
+#### datasets
+datasets:
+  train:
+    name: DTP_tr
+    mode: LRHR_IMG
+    dataroot: /mnt/sdb1/notebooks/dtp/DTPQ-MIRNET/data/DTP/train/
+    quant: 32
+    use_shuffle: true
+    n_workers: 2  # per GPU
+    batch_size: 4 #18
+    GT_size: 160
+    use_flip: true
+    color: RGB
+  val:
+    name: DTP_va
+    mode: LRHR_IMG
+    dataroot: /mnt/sdb1/notebooks/dtp/DTPQ-MIRNET/data/DTP/test/
+    n_workers: 2  # per GPU
+    batch_size: 16
+    GT_size: 160
+    quant: 32
+
+
+#### Test Settings
+model_path: pretssrained_models/NCSR_DTP_2X.pth
+
+#### network structures
+network_G:
+  which_model_G: NCSRNet
+  in_nc: 3
+  out_nc: 3
+  nf: 64
+  nb: 23
+  upscale: 2
+  train_RRDB_delay: 0.25
+
+  flow:
+    K: 12
+    L: 2
+    S: [ 16, 16 ]
+    noInitialInj: true
+    std_channels: 3
+    coupling: CondAffineSeparatedAndCond
+    additionalFlowNoAffine: 2
+    split:
+      enable: true
+    fea_up0: true
+    stackRRDB:
+      blocks: [ 1, 8, 15, 22 ]
+      concat: true
+
+#### path
+path:
+  pretrain_model_G: checkpoints/01_RRDB_DTP_2X/models/model_best.pth
+  strict_load: true
+  resume_state: auto
+
+#### training settings: learning rate scheme, loss
+train:
+  manual_seed: 10
+  lr_G: !!float 2e-4
+  weight_decay_G: 0
+  beta1: 0.9
+  beta2: 0.99
+  lr_scheme: MultiStepLR
+  warmup_iter: -1  # no warm up
+  lr_steps_rel: [ 0.5, 0.75, 0.9, 0.95 ]
+  lr_gamma: 0.5
+  
+  weight_fl: 1.00
+  weight_l1: 0.00
+
+  niter: 110000 # 220000
+  val_freq: 5000
+
