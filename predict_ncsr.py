@@ -86,7 +86,7 @@ if args.local_rank == 0:
     if not os.path.exists(temp_out):
         os.makedirs(temp_out)
 
-    # Извлекаем малюнки
+    # Extracting frames
     cmd = (
         "/usr/bin/ffmpeg -hwaccel auto -y -i "
         + str(shlex.quote(str(args.input)))
